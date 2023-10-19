@@ -8,9 +8,9 @@ import { hash, verify } from 'argon2';
 import { faker } from '@faker-js/faker';
 import { User } from '@prisma/client';
 
-import { PrismaService } from '../database/prisma.service';
 import { AuthDto } from './dto/auth.dto';
 import { UserService } from '../user/user.service';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -33,25 +33,24 @@ export class AuthService {
 			},
 		});
 
-		return this.generateLoginResponse(user);
+		return this.generateUserFields(user);
 	}
 
 	async getNewTokens(refreshToken: string) {
 		const result = await this.jwtService.verifyAsync(refreshToken);
-
 		if (!result) {
 			throw new UnauthorizedException('Invalid refresh token');
 		}
 
 		const user = await this.userService.getUserByID(result.id);
 
-		return this.generateLoginResponse(user);
+		return this.generateUserFields(user);
 	}
 
 	async login(dto: AuthDto) {
 		const user = await this.validateUser(dto);
 
-		return this.generateLoginResponse(user);
+		return this.generateUserFields(user);
 	}
 
 	private async validateUser(dto: AuthDto) {
@@ -78,7 +77,7 @@ export class AuthService {
 		return { accessToken, refreshToken };
 	}
 
-	private async generateLoginResponse(user: User) {
+	private async generateUserFields(user: User) {
 		const tokens = await this.issueTokens(user.id);
 
 		return {
